@@ -34,4 +34,10 @@ init([]) ->
 				permanent,
 				10000,
 				worker,
-				[prime_server]}]}}.
+				[prime_server]},
+			{tag3,
+				{prime_tester_server, start_link, []},
+				permanent,
+				10000,
+				worker,
+				[prime_tester_server]}]}}.
