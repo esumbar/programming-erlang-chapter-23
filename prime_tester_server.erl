@@ -14,7 +14,7 @@ is_prime(Name, N) -> gen_server:call(Name, {is_prime, N}, 20000).
 init([Name]) ->
     process_flag(trap_exit, true),
     io:format("~p starting~n", [Name]),
-    queue_server:add_tester(Name),
+    queue_server:add_tester_async(Name),
     {ok, {Name, 0}}.
 
 handle_call({is_prime, K}, _From, {Name, N}) ->
