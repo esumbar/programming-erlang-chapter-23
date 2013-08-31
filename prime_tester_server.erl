@@ -1,33 +1,34 @@
 -module (prime_tester_server).
 -behaviour (gen_server).
 
--export ([start_link/0, is_prime/1]).
+-export ([start_link/1, is_prime/2]).
 
 -export ([init/1, handle_call/3, handle_cast/2, handle_info/2,
     terminate/2, code_change/3]).
 
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(Name) ->
+    gen_server:start_link({local, Name}, ?MODULE, [Name], []).
 
-is_prime(N) -> gen_server:call(?MODULE, {is_prime, N}, 20000).
+is_prime(Name, N) -> gen_server:call(Name, {is_prime, N}, 20000).
 
-init([]) ->
+init([Name]) ->
     process_flag(trap_exit, true),
-    io:format("~p starting~n", [?MODULE]),
-    {ok, 0}.
+    io:format("~p starting~n", [Name]),
+    queue_server:add_tester(Name),
+    {ok, {Name, 0}}.
 
-handle_call({is_prime, K}, _From, N) ->
-    {reply, lib_primes:is_prime(K), N+1}.
+handle_call({is_prime, K}, _From, {Name, N}) ->
+    {reply, lib_primes:is_prime(K), {Name, N+1}}.
 
-handle_cast(_Msg, N) ->
-    {noreply, N}.
+handle_cast(_Msg, State) ->
+    {noreply, State}.
 
-handle_info(_Info, N) ->
-    {noreply, N}.
+handle_info(_Info, State) ->
+    {noreply, State}.
 
-terminate(_Reason, _N) ->
-    io:format("~p stopping~n", [?MODULE]),
+terminate(_Reason, {Name, _N}) ->
+    io:format("~p stopping~n", [Name]),
     ok.
 
-code_change(_OldVsn, N, _Extra) ->
-    {ok, N}.
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
