@@ -14,7 +14,7 @@ init_tables(_FileName) ->
     ets:new(tester_db, [named_table, {keypos, #state.srv_name}]).
 
 delete_tables() ->
-    ets:delete(tester_load).
+    ets:delete(tester_db).
 
 init_tester(Name) ->
     case ets:member(tester_db, Name) of
@@ -38,12 +38,12 @@ least_loaded_tester() ->
 
 increment_load(Name, K) ->
     [#state{load=Load, requests=Requests}] = ets:lookup(tester_db, Name),
-    ets:element_update(tester_db, Name,
+    ets:update_element(tester_db, Name,
         [{#state.load, Load+1}, {#state.requests, [K|Requests]}]).
 
 decrement_load(Name, K) ->
     [#state{load=Load, requests=Requests}] = ets:lookup(tester_db, Name),
-    ets:element_update(tester_db, Name,
+    ets:update_element(tester_db, Name,
         [{#state.load, Load-1}, {#state.requests, lists:delete(K, Requests)}]).
 
 get_tester_requests(Name) ->

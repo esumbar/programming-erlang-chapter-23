@@ -16,7 +16,7 @@ is_prime_async(Name, K) -> gen_server:cast(Name, {is_prime, K}).
 init([Name]) ->
     process_flag(trap_exit, true),
     io:format("~p starting~n", [Name]),
-    load_balancer:add_tester_async(Name),
+    load_balancer:init_tester_async(Name),
     {ok, {Name, 0}}.
 
 handle_call({is_prime, K}, _From, {Name, N}) ->

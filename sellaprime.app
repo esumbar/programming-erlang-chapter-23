@@ -6,6 +6,7 @@
         area_server, prime_server,
         prime_tester_server,
         load_balancer,
+        tester_db,
         lib_lin, lib_primes,
         my_alarm_handler]},
     {registered,
