@@ -1,9 +1,9 @@
--module (tester_db).
+-module (lib_tester_db).
 
 -export ([init_tables/1, delete_tables/0]).
--export ([init_tester/1, least_loaded_tester/0]).
+-export ([init_tester/1, least_loaded/0]).
 -export ([increment_load/2, decrement_load/2]).
--export ([get_tester_requests/1]).
+-export ([get_requests/1]).
 
 -record (state, {
     srv_name,       % atom()
@@ -11,21 +11,21 @@
     requests=[]}).  % [int()]
 
 init_tables(_FileName) ->
-    ets:new(tester_db, [named_table, {keypos, #state.srv_name}]).
+    ets:new(ets_tester_db, [named_table, {keypos, #state.srv_name}]).
 
 delete_tables() ->
-    ets:delete(tester_db).
+    ets:delete(ets_tester_db).
 
 init_tester(Name) ->
-    case ets:member(tester_db, Name) of
+    case ets:member(ets_tester_db, Name) of
         true ->
             true;
         false ->
-            ets:insert(tester_db, #state{srv_name=Name, load=0})
+            ets:insert(ets_tester_db, #state{srv_name=Name, load=0})
     end.
 
-least_loaded_tester() ->
-    [Acc0] = ets:lookup(tester_db, ets:first(tester_db)),
+least_loaded() ->
+    [Acc0] = ets:lookup(ets_tester_db, ets:first(ets_tester_db)),
     #state{srv_name=Name} = ets:foldl(
         fun(#state{load=LoadElem} = Elem, #state{load=LoadAccIn}) when LoadElem < LoadAccIn ->
                 Elem;
@@ -33,19 +33,19 @@ least_loaded_tester() ->
                 AccIn
         end,
         Acc0,
-        tester_db),
+        ets_tester_db),
     Name.
 
 increment_load(Name, K) ->
-    [#state{load=Load, requests=Requests}] = ets:lookup(tester_db, Name),
-    ets:update_element(tester_db, Name,
+    [#state{load=Load, requests=Requests}] = ets:lookup(ets_tester_db, Name),
+    ets:update_element(ets_tester_db, Name,
         [{#state.load, Load+1}, {#state.requests, [K|Requests]}]).
 
 decrement_load(Name, K) ->
-    [#state{load=Load, requests=Requests}] = ets:lookup(tester_db, Name),
-    ets:update_element(tester_db, Name,
+    [#state{load=Load, requests=Requests}] = ets:lookup(ets_tester_db, Name),
+    ets:update_element(ets_tester_db, Name,
         [{#state.load, Load-1}, {#state.requests, lists:delete(K, Requests)}]).
 
-get_tester_requests(Name) ->
-    [#state{requests=Requests}] = ets:lookup(tester_db, Name),
+get_requests(Name) ->
+    [#state{requests=Requests}] = ets:lookup(ets_tester_db, Name),
     Requests.

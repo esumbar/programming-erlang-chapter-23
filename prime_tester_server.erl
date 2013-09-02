@@ -9,9 +9,11 @@
 start_link(Name) ->
     gen_server:start_link({local, Name}, ?MODULE, [Name], []).
 
-is_prime(Name, K) -> gen_server:call(Name, {is_prime, K}, 20000).
+is_prime(Name, K) ->
+    gen_server:call(Name, {is_prime, K}, 20000).
 
-is_prime_async(Name, K) -> gen_server:cast(Name, {is_prime, K}).
+is_prime_async(Name, K) ->
+    gen_server:cast(Name, {is_prime, K}).
 
 init([Name]) ->
     process_flag(trap_exit, true),
