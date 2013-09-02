@@ -10,11 +10,13 @@
     load,           % int()
     requests=[]}).  % [int()]
 
-init_tables(_FileName) ->
-    ets:new(ets_tester_db, [named_table, {keypos, #state.srv_name}]).
+init_tables(FileName) ->
+    ets:new(ets_tester_db, [named_table, {keypos, #state.srv_name}]),
+    dets:open_file(dets_tester_db, [{file, FileName}, {keypos, #state.srv_name}]).
 
 delete_tables() ->
-    ets:delete(ets_tester_db).
+    ets:delete(ets_tester_db),
+    dets:close(dets_tester_db).
 
 init_tester(Name) ->
     case ets:member(ets_tester_db, Name) of

@@ -23,7 +23,7 @@ init_tester_async(Name) ->
 init([]) ->
     process_flag(trap_exit, true),
     io:format("~p starting~n", [?MODULE]),
-    lib_tester_db:init_tables(unused),
+    lib_tester_db:init_tables("db_tables/tester_table"),
     {ok, 0}.
 
 handle_call(_Request, _From, State) ->
