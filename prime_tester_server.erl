@@ -26,7 +26,6 @@ handle_call({is_prime, K}, _From, {Name, N}) ->
 
 handle_cast({is_prime, K}, {Name, N}) ->
     load_balancer:print_result_async(Name, K, lib_primes:is_prime(K)),
-    load_balancer:unload_tester_async(Name, K),
     {noreply, {Name, N+1}}.
 
 handle_info(_Info, State) ->

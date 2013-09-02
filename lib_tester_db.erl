@@ -12,19 +12,16 @@
 
 init_tables(FileName) ->
     ets:new(ets_tester_db, [named_table, {keypos, #state.srv_name}]),
-    dets:open_file(dets_tester_db, [{file, FileName}, {keypos, #state.srv_name}]).
+    dets:open_file(dets_tester_db,
+        [{file, FileName}, {keypos, #state.srv_name}]).
 
 delete_tables() ->
     ets:delete(ets_tester_db),
     dets:close(dets_tester_db).
 
 init_tester(Name) ->
-    case ets:member(ets_tester_db, Name) of
-        true ->
-            true;
-        false ->
-            ets:insert(ets_tester_db, #state{srv_name=Name, load=0})
-    end.
+    ets:insert(ets_tester_db, #state{srv_name=Name, load=0}),
+    dets:insert(dets_tester_db, #state{srv_name=Name, load=0}).
 
 least_loaded() ->
     [Acc0] = ets:lookup(ets_tester_db, ets:first(ets_tester_db)),
@@ -41,12 +38,16 @@ least_loaded() ->
 increment_load(Name, K) ->
     [#state{load=Load, requests=Requests}] = ets:lookup(ets_tester_db, Name),
     ets:update_element(ets_tester_db, Name,
-        [{#state.load, Load+1}, {#state.requests, [K|Requests]}]).
+        [{#state.load, Load+1}, {#state.requests, [K|Requests]}]),
+    dets:insert(dets_tester_db,
+        #state{srv_name=Name, load=Load+1, requests=[K|Requests]}).
 
 decrement_load(Name, K) ->
     [#state{load=Load, requests=Requests}] = ets:lookup(ets_tester_db, Name),
     ets:update_element(ets_tester_db, Name,
-        [{#state.load, Load-1}, {#state.requests, lists:delete(K, Requests)}]).
+        [{#state.load, Load-1}, {#state.requests, lists:delete(K, Requests)}]),
+    dets:insert(dets_tester_db,
+        #state{srv_name=Name, load=Load-1, requests=lists:delete(K, Requests)}).
 
 get_requests(Name) ->
     [#state{requests=Requests}] = ets:lookup(ets_tester_db, Name),
