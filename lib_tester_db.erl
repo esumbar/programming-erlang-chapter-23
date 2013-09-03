@@ -11,17 +11,28 @@
     requests=[]}).  % [int()]
 
 init_tables(FileName) ->
-    ets:new(ets_tester_db, [named_table, {keypos, #state.srv_name}]),
     dets:open_file(dets_tester_db,
-        [{file, FileName}, {keypos, #state.srv_name}]).
+        [{file, FileName}, {keypos, #state.srv_name}]),
+    case dets:info(dets_tester_db, size) of
+        0 ->
+            ets:new(ets_tester_db, [named_table, {keypos, #state.srv_name}]);
+        Size when is_integer(Size), Size > 0 ->
+            ets:new(ets_tester_db, [named_table, {keypos, #state.srv_name}]),
+            dets:to_ets(dets_tester_db, ets_tester_db)
+    end.
 
 delete_tables() ->
     ets:delete(ets_tester_db),
     dets:close(dets_tester_db).
 
 init_tester(Name) ->
-    ets:insert(ets_tester_db, #state{srv_name=Name, load=0}),
-    dets:insert(dets_tester_db, #state{srv_name=Name, load=0}).
+    case ets:member(ets_tester_db, Name) of
+        false ->
+            ets:insert(ets_tester_db, #state{srv_name=Name, load=0}),
+            dets:insert(dets_tester_db, #state{srv_name=Name, load=0});
+        true ->
+            true
+    end.
 
 least_loaded() ->
     [Acc0] = ets:lookup(ets_tester_db, ets:first(ets_tester_db)),

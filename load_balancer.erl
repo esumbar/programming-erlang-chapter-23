@@ -36,6 +36,11 @@ handle_cast({dispatch_test, K}, N) ->
     {noreply, N+1};
 handle_cast({init_tester, Name}, N) ->
     lib_tester_db:init_tester(Name),
+    lists:foreach(
+        fun(X) ->
+            prime_tester_server:is_prime_async(Name, X)
+        end,
+        lists:reverse(lib_tester_db:get_requests(Name))),
     {noreply, N+1};
 handle_cast({print_result, Name, K, Result}, N) ->
     io:format("From: ~p, is prime: ~p, result: ~p~n", [Name, K, Result]),
