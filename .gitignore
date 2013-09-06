@@ -2,3 +2,4 @@
 *.beam
 error_logs
 db_tables
+Mnesia*

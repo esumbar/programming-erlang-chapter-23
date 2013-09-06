@@ -22,7 +22,7 @@ print_result_async(Name, K, Result) ->
 init([]) ->
     process_flag(trap_exit, true),
     io:format("~p starting~n", [?MODULE]),
-    lib_tester_db:init_tables("db_tables/tester_table"),
+    lib_tester_db:init_tables(),
     {ok, 0}.
 
 handle_call(_Request, _From, State) ->
