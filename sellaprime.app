@@ -6,7 +6,6 @@
         area_server, prime_server,
         prime_tester_server,
         load_balancer,
-        lib_tester_db,
         prime_tester_supervisor,
         prime_tester_server_supervisor,
         lib_lin, lib_primes,

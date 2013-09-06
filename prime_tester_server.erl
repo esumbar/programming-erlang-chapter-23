@@ -6,6 +6,8 @@
 -export ([init/1, handle_call/3, handle_cast/2, handle_info/2,
     terminate/2, code_change/3]).
 
+-include ("state.hrl").
+
 start_link(Name) ->
     gen_server:start_link({local, Name}, ?MODULE, [Name], []).
 
@@ -18,7 +20,18 @@ is_prime_async(Name, K) ->
 init([Name]) ->
     process_flag(trap_exit, true),
     io:format("~p starting~n", [Name]),
-    load_balancer:init_tester_async(Name),
+    {atomic, #state{requests=Requests}} = mnesia:transaction(
+        fun() ->
+            case mnesia:read({state, Name}) of
+                [] ->
+                    NewTester = #state{srv_name=Name},
+                    mnesia:write(NewTester),
+                    NewTester;
+                [OldTester] ->
+                    OldTester
+            end
+        end),
+    lists:foreach(fun(K) -> is_prime_async(self(), K) end, lists:reverse(Requests)),
     {ok, {Name, 0}}.
 
 handle_call({is_prime, K}, _From, {Name, N}) ->
