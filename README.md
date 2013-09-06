@@ -37,3 +37,5 @@ In exercise 6, I converted the table copy type on node `backup@gilda` from `disc
 	{atomic,ok}
 
 With this setup, I was able to halt one of the nodes and resume on the other. Commenting-out the call to `lib_tester_db:decrement_load/2` in the `load_balancer` module, as before, helps to demonstrate proper operation. When the app is manually restarted on the other node, all the requests performed on the halted node are rerun. As takeover and failover (and distributed OTP in general) are not covered in the text, I did not try to fulfill the problem specification in that way.
+
+As an extra exercise, I decided to implement database transactions.
