@@ -34,5 +34,6 @@ Afterwards, the `init_tables/1` function in the `lib_tester_db` module was revis
 In exercise 6, I converted the table copy type on node `backup@gilda` from `disc_only_copies` to `disc_copies`.
 
 	(main@gilda)57> mnesia:change_table_copy_type(state, backup@gilda, disc_copies).
+	{atomic,ok}
 
 With this setup, I was able to halt one of the nodes and resume on the other. Commenting-out the call to `lib_tester_db:decrement_load/2` in the `load_balancer` module, as before, helps to demonstrate proper operation. When the app is manually restarted on the other node, all the requests performed on the halted node are rerun. As takeover and failover (and distributed OTP in general) are not covered in the text, I did not try to fulfill the problem specification in that way.
