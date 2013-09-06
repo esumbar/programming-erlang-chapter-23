@@ -9,14 +9,16 @@
 start_link(Name) ->
     gen_server:start_link({local, Name}, ?MODULE, [Name], []).
 
-is_prime(Name, K) -> gen_server:call(Name, {is_prime, K}, 20000).
+is_prime(Name, K) ->
+    gen_server:call(Name, {is_prime, K}, 20000).
 
-is_prime_async(Name, K) -> gen_server:cast(Name, {is_prime, K}).
+is_prime_async(Name, K) ->
+    gen_server:cast(Name, {is_prime, K}).
 
 init([Name]) ->
     process_flag(trap_exit, true),
     io:format("~p starting~n", [Name]),
-    load_balancer:add_tester_async(Name),
+    load_balancer:init_tester_async(Name),
     {ok, {Name, 0}}.
 
 handle_call({is_prime, K}, _From, {Name, N}) ->
@@ -24,7 +26,6 @@ handle_call({is_prime, K}, _From, {Name, N}) ->
 
 handle_cast({is_prime, K}, {Name, N}) ->
     load_balancer:print_result_async(Name, K, lib_primes:is_prime(K)),
-    load_balancer:unload_tester_async(Name, K),
     {noreply, {Name, N+1}}.
 
 handle_info(_Info, State) ->
