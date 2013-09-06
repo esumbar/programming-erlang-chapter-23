@@ -29,12 +29,10 @@ I created two nodes, short names `main@gilda` and `backup@gilda`, both running f
 	(main@gilda)6> mnesia:create_table(state, [{disc_copies, [node()]}, {disc_only_copies, nodes()}, {attributes, record_info(fields, state)}]).
 	{atomic,ok}
 
-Afterwards, the `init_tables/1` function in the `lib_tester_db` module was revised to just call `mnesia:wait_for_tables/2` and the others were converted to _dirty_ Mnesia operations.
+Afterwards, the `init_tables/1` function in the `lib_tester_db` module was revised to just call `mnesia:wait_for_tables/2` and the others were converted to _dirty_ Mnesia operations. These operations could be distributed among the `prime_tester_server` and `load_balancer` modules using transactions, but that was not done.
 
 In exercise 6, I converted the table copy type on node `backup@gilda` from `disc_only_copies` to `disc_copies`.
 
 	(main@gilda)57> mnesia:change_table_copy_type(state, backup@gilda, disc_copies).
 
-With this setup, I was able to halt one of the nodes and resume on the other. Commenting-out the call to `lib_tester_db:decrement_load/2` in the `load_balancer` module, as before, helps to demonstrate proper operation. When the app is manually restarted on the other node, all the requests performed on the halted node are rerun. As takeover and failover (and distributed OTP in general) are not covered in the text, I did not try to fulfill the problem specification that way.
-
-dropped the `lib_tester_db` module and took advantage of transactions and distributed the database operations among the testers and load balancer.
+With this setup, I was able to halt one of the nodes and resume on the other. Commenting-out the call to `lib_tester_db:decrement_load/2` in the `load_balancer` module, as before, helps to demonstrate proper operation. When the app is manually restarted on the other node, all the requests performed on the halted node are rerun. As takeover and failover (and distributed OTP in general) are not covered in the text, I did not try to fulfill the problem specification in that way.
