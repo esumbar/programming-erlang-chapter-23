@@ -16,15 +16,15 @@ is_prime_async(Name, K) -> gen_server:cast(Name, {is_prime, K}).
 init([Name]) ->
     process_flag(trap_exit, true),
     io:format("~p starting~n", [Name]),
-    queue_server:add_tester_async(Name),
+    load_balancer:add_tester_async(Name),
     {ok, {Name, 0}}.
 
 handle_call({is_prime, K}, _From, {Name, N}) ->
     {reply, lib_primes:is_prime(K), {Name, N+1}}.
 
 handle_cast({is_prime, K}, {Name, N}) ->
-    queue_server:print_result_async(Name, K, lib_primes:is_prime(K)),
-    queue_server:free_tester_async(Name),
+    load_balancer:print_result_async(Name, K, lib_primes:is_prime(K)),
+    load_balancer:unload_tester_async(Name, K),
     {noreply, {Name, N+1}}.
 
 handle_info(_Info, State) ->
