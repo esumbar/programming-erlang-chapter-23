@@ -1,33 +1,38 @@
 -module (prime_tester_server).
 -behaviour (gen_server).
 
--export ([start_link/0, is_prime/1]).
+-export ([start_link/1, is_prime/2, is_prime_async/2]).
 
 -export ([init/1, handle_call/3, handle_cast/2, handle_info/2,
-	terminate/2, code_change/3]).
+    terminate/2, code_change/3]).
 
-start_link() ->
-	gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(Name) ->
+    gen_server:start_link({local, Name}, ?MODULE, [Name], []).
 
-is_prime(N) -> gen_server:call(?MODULE, {is_prime, N}, 20000).
+is_prime(Name, K) -> gen_server:call(Name, {is_prime, K}, 20000).
 
-init([]) ->
-	process_flag(trap_exit, true),
-	io:format("~p starting~n", [?MODULE]),
-	{ok, 0}.
+is_prime_async(Name, K) -> gen_server:cast(Name, {is_prime, K}).
 
-handle_call({is_prime, K}, _From, N) ->
-	{reply, lib_primes:is_prime(K), N+1}.
+init([Name]) ->
+    process_flag(trap_exit, true),
+    io:format("~p starting~n", [Name]),
+    queue_server:add_tester_async(Name),
+    {ok, {Name, 0}}.
 
-handle_cast(_Msg, N) ->
-	{noreply, N}.
+handle_call({is_prime, K}, _From, {Name, N}) ->
+    {reply, lib_primes:is_prime(K), {Name, N+1}}.
 
-handle_info(_Info, N) ->
-	{noreply, N}.
+handle_cast({is_prime, K}, {Name, N}) ->
+    queue_server:print_result_async(Name, K, lib_primes:is_prime(K)),
+    queue_server:free_tester_async(Name),
+    {noreply, {Name, N+1}}.
 
-terminate(_Reason, _N) ->
-	io:format("~p stopping~n", [?MODULE]),
-	ok.
+handle_info(_Info, State) ->
+    {noreply, State}.
 
-code_change(_OldVsn, N, _Extra) ->
-	{ok, N}.
+terminate(_Reason, {Name, _N}) ->
+    io:format("~p stopping~n", [Name]),
+    ok.
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
